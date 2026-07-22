@@ -429,47 +429,204 @@
     // =========================================================================
     // MODE ADMIN PROCESS
     // =========================================================================
+
+<!-- DASHBOARD ADMIN -->
+<div id="adminDashboard" class="hidden">
+    <div class="card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap; gap:10px;">
+        <div>
+            <h2 style="font-size: 1.2rem; color: var(--accent);"><i class="fa-solid fa-chart-line"></i> Dashboard Petinggi Bengkel</h2>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">Kelola pendaftaran pegawai, jam duty, dan sistem penggajian</p>
+        </div>
+        <button class="btn btn-out" style="flex: none; padding: 8px 16px; font-size:0.8rem;" onclick="logoutAdmin()"><i class="fa-solid fa-power-off"></i> Logout Admin</button>
+    </div>
+
+    <!-- SUB-NAVIGASI ADMIN -->
+    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <button class="tab-btn active" id="btnSubPegawai" onclick="switchAdminTab('pegawai')"><i class="fa-solid fa-users"></i> Kelola Pegawai & Jam Duty</button>
+        <button class="tab-btn" id="btnSubGaji" onclick="switchAdminTab('gaji')"><i class="fa-solid fa-money-bill-wave"></i> Pengaturan & Kalkulator Gaji</button>
+    </div>
+
+    <!-- SUB-SECTION 1: KELOLA PEGAWAI (Tampilan Lama Kamu) -->
+    <div id="subSectionPegawai">
+        <!-- TAMBAH PEGAWAI CARD -->
+        <!-- REKAP JAM KERJA CARD -->
+        <!-- RIWAYAT LOGS CARD -->
+        <!-- (Biarkan kode lama kamu di sini) -->
+    </div>
+
+    <!-- SUB-SECTION 2: PENGATURAN GAJI (MENU BARU) -->
+    <div id="subSectionGaji" class="hidden">
+        <!-- CARD SETTING TARIF PER JABATAN -->
+        <div class="card">
+            <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fa-solid fa-sliders"></i> Atur Tarif Gaji Per Jam (Per Jabatan)</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;" id="rateInputContainer">
+                <!-- Diisi otomatis oleh JavaScript -->
+            </div>
+            <button class="btn btn-primary" style="margin-top: 15px; width: 100%;" onclick="saveSalaryRates()"><i class="fa-solid fa-floppy-disk"></i> Simpan Tarif Gaji</button>
+        </div>
+
+        <!-- CARD REKAP PAYCHECK / TOTAL GAJI PEGAWAI -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                <h3 style="font-size: 1rem;"><i class="fa-solid fa-file-invoice-dollar"></i> Rekapitualisasi Gaji Pegawai (Paycheck)</h3>
+                <span style="font-size: 0.85rem; color: var(--accent); font-weight: bold;" id="totalPayrollAll">Total Estimasi Payout: $0</span>
+            </div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nama IC</th>
+                            <th>Jabatan</th>
+                            <th>Total Jam</th>
+                            <th>Tarif / Jam</th>
+                            <th>Total Gaji Diterima</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salarySummaryTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+2. Bungkus Card Kelola Pegawai Lama Kamu
+Pastikan semua card lama kamu yang ada di Mode Admin (Form Tambah Pegawai, Tabel Rekap Jam Kerja, dan Tabel Log) dimasukkan ke dalam elemen <div id="subSectionPegawai"> ... </div> agar ketika tombol menu Gaji diklik, tampilan lama tersebut tersembunyi dengan rapi.
+
+3. Tambahkan Kode JavaScript Pengaturan Gaji
+Tambahkan logika berikut ke dalam bagian <script> di bagian bawah file:
+
+JavaScript
+// Database Default Tarif Gaji Per Jam
+let salaryRates = JSON.parse(localStorage.getItem('bengkel_salary_rates')) || {
+    "Apprentice Mechanic": 500,
+    "Senior Mechanic": 800,
+    "Master Mechanic": 1200,
+    "HRD": 1500,
+    "Manager": 1800,
+    "CEO": 2500
+};
+
+// Navigasi Sub-Tab Admin
+function switchAdminTab(tab) {
+    document.getElementById('subSectionPegawai').classList.toggle('hidden', tab !== 'pegawai');
+    document.getElementById('subSectionGaji').classList.toggle('hidden', tab !== 'gaji');
+    
+    document.getElementById('btnSubPegawai').classList.toggle('active', tab === 'pegawai');
+    document.getElementById('btnSubGaji').classList.toggle('active', tab === 'gaji');
+
+    if (tab === 'gaji') {
+        renderSalaryInputs();
+        renderSalarySummary();
+    }
+}
+
+// Render Input Form Tarif Gaji
+function renderSalaryInputs() {
+    const container = document.getElementById('rateInputContainer');
+    container.innerHTML = '';
+
+    Object.keys(salaryRates).forEach(rank => {
+        container.innerHTML += `
+            <div>
+                <label style="font-size:0.75rem;">${rank}</label>
+                <input type="number" id="rate_${rank.replace(/\s+/g, '_')}" value="${salaryRates[rank]}" placeholder="Tarif $">
+            </div>
+        `;
+    });
+}
+
+// Simpan Tarif Gaji
+function saveSalaryRates() {
+    Object.keys(salaryRates).forEach(rank => {
+        const inputId = `rate_${rank.replace(/\s+/g, '_')}`;
+        const val = parseFloat(document.getElementById(inputId).value) || 0;
+        salaryRates[rank] = val;
+    });
+
+    localStorage.setItem('bengkel_salary_rates', JSON.stringify(salaryRates));
+    alert('Tarif gaji per jabatan berhasil diperbarui!');
+    renderSalarySummary();
+}
+
+// Render Tabel Rekapitualisasi Gaji Pegawai
+function renderSalarySummary() {
+    const tbody = document.getElementById('salarySummaryTable');
+    tbody.innerHTML = '';
+
+    let grandTotalPayroll = 0;
+
+    if (Object.keys(employees).length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted)">Belum ada data pegawai.</td></tr>';
+        document.getElementById('totalPayrollAll').innerText = 'Total Estimasi Payout: $0';
+        return;
+    }
+
+    Object.keys(employees).forEach(key => {
+        const emp = employees[key];
+        
+        let currentTotalMs = emp.totalTimeMs || 0;
+        if (emp.status === 'ON DUTY' && emp.lastClockIn) {
+            currentTotalMs += (new Date().getTime() - emp.lastClockIn);
+        }
+
+        // Hitung jam desimal
+        let hoursDecimal = (currentTotalMs / (1000 * 60 * 60));
+        let rate = salaryRates[emp.rank] || 0;
+        let totalSalary = Math.round(hoursDecimal * rate);
+
+        grandTotalPayroll += totalSalary;
+
+        tbody.innerHTML += `
+            <tr>
+                <td><strong>${emp.name}</strong></td>
+                <td>${emp.rank}</td>
+                <td>${formatMsToTime(currentTotalMs)} (${hoursDecimal.toFixed(2)} Jam)</td>
+                <td>$${rate.toLocaleString('en-US')}/jam</td>
+                <td><strong style="color:var(--success); font-size:1rem;">$${totalSalary.toLocaleString('en-US')}</strong></td>
+            </tr>
+        `;
+    });
+
+    document.getElementById('totalPayrollAll').innerText = `Total Estimasi Payout: $${grandTotalPayroll.toLocaleString('en-US')}`;
+}
     
     // Function untuk Export Rekap Jam Kerja ke file Excel (.csv)
+// Function Export Excel yang SUDAH TERHUBUNG dengan Tarif Gaji
 function exportToExcel() {
     if (Object.keys(employees).length === 0) {
         alert('Tidak ada data pegawai untuk di-export!');
         return;
     }
 
-    // Header Kolom di Excel
+    // Header Kolom di Excel (Ditambahkan Tarif & Total Gaji)
     let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Nama IC,Jabatan,Status,Total Jam Duty (Formatted),Total Jam (Decimal)\n";
+    csvContent += "Nama IC,Jabatan,Status,Total Jam (Formatted),Total Jam (Decimal),Tarif Per Jam,Total Gaji Diterima\n";
 
-    // Loop data semua pegawai
     Object.keys(employees).forEach(key => {
         const emp = employees[key];
         
-        // Kalkulasi waktu jika sedang ON DUTY
         let currentTotalMs = emp.totalTimeMs || 0;
         if (emp.status === 'ON DUTY' && emp.lastClockIn) {
             currentTotalMs += (new Date().getTime() - emp.lastClockIn);
         }
 
-        // Format waktu teks (e.g. 2 Jam 30 Mnt)
         let formattedTime = formatMsToTime(currentTotalMs);
-        
-        // Format angka desimal untuk perhitungan rumus perkalian gaji di Excel (e.g. 2.5 Jam)
         let hoursDecimal = (currentTotalMs / (1000 * 60 * 60)).toFixed(2);
+        
+        // Ambil tarif gaji per jam dari database salaryRates
+        let rate = salaryRates[emp.rank] || 0;
+        let totalSalary = Math.round(hoursDecimal * rate);
 
-        // Tambahkan baris data (bersihkan koma pada nama agar CSV tidak berantakan)
         let cleanName = emp.name.replace(/,/g, '');
         let cleanRank = emp.rank.replace(/,/g, '');
         
-        csvContent += `"${cleanName}","${cleanRank}","${emp.status}","${formattedTime}",${hoursDecimal}\n`;
+        csvContent += `"${cleanName}","${cleanRank}","${emp.status}","${formattedTime}",${hoursDecimal},${rate},${totalSalary}\n`;
     });
 
-    // Download File Otomatis
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
     
-    // Nama File saat di-download (contoh: Rekap_Gaji_Bengkel_2026-07-22.csv)
     const today = new Date().toISOString().split('T')[0];
     link.setAttribute("download", `Rekap_Gaji_Bengkel_${today}.csv`);
     
