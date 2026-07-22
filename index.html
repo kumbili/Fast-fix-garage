@@ -71,6 +71,12 @@
         .action-btn-sm { padding: 6px 10px; border-radius: 6px; border: none; font-weight: 600; font-size: 0.75rem; cursor: pointer; margin-right: 4px; }
         .btn-del { background: var(--danger); color: #fff; }
         .btn-reset { background: #3b82f6; color: #fff; }
+
+        /* Widget Keuangan Specific Styles */
+        .finance-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .finance-card { background: #0c1017; padding: 18px; border-radius: 12px; border: 1px solid var(--border); }
+        .finance-card h4 { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+        .finance-card .amount { font-size: 1.4rem; font-weight: 800; }
     </style>
 </head>
 <body>
@@ -158,15 +164,16 @@
             <div class="card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap; gap:10px;">
                 <div>
                     <h2 style="font-size: 1.2rem; color: var(--accent);"><i class="fa-solid fa-chart-line"></i> Dashboard Petinggi Bengkel</h2>
-                    <p style="font-size: 0.8rem; color: var(--text-muted);">Kelola pendaftaran pegawai, jam duty, dan sistem penggajian</p>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">Kelola pendaftaran pegawai, jam duty, sistem penggajian, dan kas</p>
                 </div>
                 <button class="btn btn-out" style="flex: none; padding: 8px 16px; font-size:0.8rem;" onclick="logoutAdmin()"><i class="fa-solid fa-power-off"></i> Logout Admin</button>
             </div>
 
             <!-- SUB-NAVIGASI ADMIN -->
-            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
                 <button class="tab-btn active" id="btnSubPegawai" onclick="switchAdminTab('pegawai')"><i class="fa-solid fa-users"></i> Kelola Pegawai & Jam Duty</button>
                 <button class="tab-btn" id="btnSubGaji" onclick="switchAdminTab('gaji')"><i class="fa-solid fa-money-bill-wave"></i> Pengaturan & Kalkulator Gaji</button>
+                <button class="tab-btn" id="btnSubKeuangan" onclick="switchAdminTab('keuangan')"><i class="fa-solid fa-wallet"></i> Keuangan Bengkel</button>
             </div>
 
             <!-- SUB-SECTION 1: KELOLA PEGAWAI -->
@@ -272,6 +279,67 @@
                 </div>
             </div>
 
+            <!-- SUB-SECTION 3: KEUANGAN BENGKEL -->
+            <div id="subSectionKeuangan" class="hidden">
+                <!-- RINGKASAN KAS -->
+                <div class="finance-cards">
+                    <div class="finance-card">
+                        <h4>Total Pemasukan</h4>
+                        <div class="amount" style="color: var(--success);" id="totalIncome">$0</div>
+                    </div>
+                    <div class="finance-card">
+                        <h4>Total Pengeluaran</h4>
+                        <div class="amount" style="color: var(--danger);" id="totalExpense">$0</div>
+                    </div>
+                    <div class="finance-card">
+                        <h4>Kas Bersih Bengkel</h4>
+                        <div class="amount" style="color: var(--accent);" id="netBalance">$0</div>
+                    </div>
+                </div>
+
+                <!-- FORM PEMASUKAN & PENGELUARAN -->
+                <div class="card">
+                    <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fa-solid fa-cash-register"></i> Catat Transaksi Baru</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+                        <div>
+                            <label>Jenis Transaksi</label>
+                            <select id="transType">
+                                <option value="in">Pemasukan (+)</option>
+                                <option value="out">Pengeluaran (-)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Jumlah Nominal ($)</label>
+                            <input type="number" id="transAmount" placeholder="Contoh: 5000">
+                        </div>
+                        <div>
+                            <label>Keterangan / Catatan</label>
+                            <input type="text" id="transDesc" placeholder="Contoh: Servis Mesin Sultan / Beli Component">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" style="margin-top: 15px; width: 100%;" onclick="addTransaction()"><i class="fa-solid fa-plus-circle"></i> Simpan Transaksi</button>
+                </div>
+
+                <!-- TABEL RIWAYAT TRANSAKSI KEUANGAN -->
+                <div class="card">
+                    <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fa-solid fa-receipt"></i> Riwayat Keuangan Bengkel</h3>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Waktu</th>
+                                    <th>Jenis</th>
+                                    <th>Keterangan</th>
+                                    <th>Nominal</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="financeTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
@@ -293,6 +361,7 @@
 
     let employees = {};
     let logs = [];
+    let finances = {};
 
     // Tarif Gaji Default (Local Storage Supported)
     let salaryRates = JSON.parse(localStorage.getItem('bengkel_salary_rates')) || {
@@ -318,6 +387,12 @@
         const val = snapshot.val() || {};
         logs = Object.values(val).reverse();
         renderAdminLogs();
+    });
+
+    // Realtime Listener Data Keuangan
+    db.ref('finance').on('value', (snapshot) => {
+        finances = snapshot.val() || {};
+        renderFinanceDashboard();
     });
 
     // =========================================================================
@@ -456,13 +531,17 @@
     function switchAdminTab(tab) {
         document.getElementById('subSectionPegawai').classList.toggle('hidden', tab !== 'pegawai');
         document.getElementById('subSectionGaji').classList.toggle('hidden', tab !== 'gaji');
+        document.getElementById('subSectionKeuangan').classList.toggle('hidden', tab !== 'keuangan');
         
         document.getElementById('btnSubPegawai').classList.toggle('active', tab === 'pegawai');
         document.getElementById('btnSubGaji').classList.toggle('active', tab === 'gaji');
+        document.getElementById('btnSubKeuangan').classList.toggle('active', tab === 'keuangan');
 
         if (tab === 'gaji') {
             renderSalaryInputs();
             renderSalarySummary();
+        } else if (tab === 'keuangan') {
+            renderFinanceDashboard();
         }
     }
 
@@ -675,6 +754,79 @@
                 </tr>
             `;
         });
+    }
+
+    // =========================================================================
+    // KEUANGAN BENGKEL PROCESS
+    // =========================================================================
+    function addTransaction() {
+        const type = document.getElementById('transType').value;
+        const amount = parseFloat(document.getElementById('transAmount').value);
+        const desc = document.getElementById('transDesc').value.trim();
+
+        if (!amount || amount <= 0) return alert('Masukkan jumlah nominal angka yang valid!');
+        if (!desc) return alert('Masukkan keterangan transaksi!');
+
+        const newKey = db.ref('finance').push().key;
+        db.ref(`finance/${newKey}`).set({
+            type: type,
+            amount: amount,
+            desc: desc,
+            timestamp: new Date().toLocaleString('id-ID')
+        });
+
+        document.getElementById('transAmount').value = '';
+        document.getElementById('transDesc').value = '';
+    }
+
+    function deleteTransaction(key) {
+        if (confirm('Apakah kamu yakin ingin menghapus catatan transaksi ini?')) {
+            db.ref(`finance/${key}`).remove();
+        }
+    }
+
+    function renderFinanceDashboard() {
+        const tbody = document.getElementById('financeTable');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        let totalIn = 0;
+        let totalOut = 0;
+
+        const keys = Object.keys(finances).reverse();
+
+        if (keys.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted)">Belum ada transaksi tercatat.</td></tr>';
+        } else {
+            keys.forEach(key => {
+                const item = finances[key];
+                if (item.type === 'in') totalIn += item.amount;
+                if (item.type === 'out') totalOut += item.amount;
+
+                const isIncome = item.type === 'in';
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${item.timestamp}</td>
+                        <td><span class="status-badge ${isIncome ? 'badge-on' : 'badge-off'}">${isIncome ? 'PEMASUKAN' : 'PENGELUARAN'}</span></td>
+                        <td>${item.desc}</td>
+                        <td style="font-weight:bold; color:${isIncome ? 'var(--success)' : 'var(--danger)'}">
+                            ${isIncome ? '+' : '-'}$${item.amount.toLocaleString('en-US')}
+                        </td>
+                        <td>
+                            <button class="action-btn-sm btn-del" onclick="deleteTransaction('${key}')"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('totalIncome').innerText = `$${totalIn.toLocaleString('en-US')}`;
+        document.getElementById('totalExpense').innerText = `$${totalOut.toLocaleString('en-US')}`;
+        
+        const net = totalIn - totalOut;
+        const netEl = document.getElementById('netBalance');
+        netEl.innerText = `$${net.toLocaleString('en-US')}`;
+        netEl.style.color = net >= 0 ? 'var(--accent)' : 'var(--danger)';
     }
 </script>
 </body>
