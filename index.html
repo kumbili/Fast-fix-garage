@@ -429,6 +429,55 @@
     // =========================================================================
     // MODE ADMIN PROCESS
     // =========================================================================
+    
+    // Function untuk Export Rekap Jam Kerja ke file Excel (.csv)
+    function exportToExcel() {
+    if (Object.keys(employees).length === 0) {
+        alert('Tidak ada data pegawai untuk di-export!');
+        return;
+    }
+
+    // Header Kolom di Excel
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Nama IC,Jabatan,Status,Total Jam Duty (Formatted),Total Jam (Decimal)\n";
+
+    // Loop data semua pegawai
+    Object.keys(employees).forEach(key => {
+        const emp = employees[key];
+        
+        // Kalkulasi waktu jika sedang ON DUTY
+        let currentTotalMs = emp.totalTimeMs || 0;
+        if (emp.status === 'ON DUTY' && emp.lastClockIn) {
+            currentTotalMs += (new Date().getTime() - emp.lastClockIn);
+        }
+
+        // Format waktu teks (e.g. 2 Jam 30 Mnt)
+        let formattedTime = formatMsToTime(currentTotalMs);
+        
+        // Format angka desimal untuk perhitungan rumus perkalian gaji di Excel (e.g. 2.5 Jam)
+        let hoursDecimal = (currentTotalMs / (1000 * 60 * 60)).toFixed(2);
+
+        // Tambahkan baris data (bersihkan koma pada nama agar CSV tidak berantakan)
+        let cleanName = emp.name.replace(/,/g, '');
+        let cleanRank = emp.rank.replace(/,/g, '');
+        
+        csvContent += `"${cleanName}","${cleanRank}","${emp.status}","${formattedTime}",${hoursDecimal}\n`;
+    });
+
+    // Download File Otomatis
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    
+    // Nama File saat di-download (contoh: Rekap_Gaji_Bengkel_2026-07-22.csv)
+    const today = new Date().toISOString().split('T')[0];
+    link.setAttribute("download", `Rekap_Gaji_Bengkel_${today}.csv`);
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+    
     function loginAdmin() {
         const inputPass = document.getElementById('adminPasswordInput').value;
         if (inputPass === ADMIN_PASSWORD) {
