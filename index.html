@@ -152,6 +152,65 @@
         </div>
 
         <!-- DASHBOARD ADMIN -->
+<div id="adminDashboard" class="hidden">
+    <div class="card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap; gap:10px;">
+        <div>
+            <h2 style="font-size: 1.2rem; color: var(--accent);"><i class="fa-solid fa-chart-line"></i> Dashboard Petinggi Bengkel</h2>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">Kelola pendaftaran pegawai, jam duty, dan sistem penggajian</p>
+        </div>
+        <button class="btn btn-out" style="flex: none; padding: 8px 16px; font-size:0.8rem;" onclick="logoutAdmin()"><i class="fa-solid fa-power-off"></i> Logout Admin</button>
+    </div>
+
+    <!-- SUB-NAVIGASI ADMIN -->
+    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <button class="tab-btn active" id="btnSubPegawai" onclick="switchAdminTab('pegawai')"><i class="fa-solid fa-users"></i> Kelola Pegawai & Jam Duty</button>
+        <button class="tab-btn" id="btnSubGaji" onclick="switchAdminTab('gaji')"><i class="fa-solid fa-money-bill-wave"></i> Pengaturan & Kalkulator Gaji</button>
+    </div>
+
+    <!-- SUB-SECTION 1: KELOLA PEGAWAI (Tampilan Lama Kamu) -->
+    <div id="subSectionPegawai">
+        <!-- TAMBAH PEGAWAI CARD -->
+        <!-- REKAP JAM KERJA CARD -->
+        <!-- RIWAYAT LOGS CARD -->
+        <!-- (Biarkan kode lama kamu di sini) -->
+    </div>
+
+    <!-- SUB-SECTION 2: PENGATURAN GAJI (MENU BARU) -->
+    <div id="subSectionGaji" class="hidden">
+        <!-- CARD SETTING TARIF PER JABATAN -->
+        <div class="card">
+            <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fa-solid fa-sliders"></i> Atur Tarif Gaji Per Jam (Per Jabatan)</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;" id="rateInputContainer">
+                <!-- Diisi otomatis oleh JavaScript -->
+            </div>
+            <button class="btn btn-primary" style="margin-top: 15px; width: 100%;" onclick="saveSalaryRates()"><i class="fa-solid fa-floppy-disk"></i> Simpan Tarif Gaji</button>
+        </div>
+
+        <!-- CARD REKAP PAYCHECK / TOTAL GAJI PEGAWAI -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                <h3 style="font-size: 1rem;"><i class="fa-solid fa-file-invoice-dollar"></i> Rekapitualisasi Gaji Pegawai (Paycheck)</h3>
+                <span style="font-size: 0.85rem; color: var(--accent); font-weight: bold;" id="totalPayrollAll">Total Estimasi Payout: $0</span>
+            </div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nama IC</th>
+                            <th>Jabatan</th>
+                            <th>Total Jam</th>
+                            <th>Tarif / Jam</th>
+                            <th>Total Gaji Diterima</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salarySummaryTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+        
         <div id="adminDashboard" class="hidden">
             <div class="card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap; gap:10px;">
                 <div>
@@ -429,73 +488,6 @@
     // =========================================================================
     // MODE ADMIN PROCESS
     // =========================================================================
-
-<!-- DASHBOARD ADMIN -->
-<div id="adminDashboard" class="hidden">
-    <div class="card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap; gap:10px;">
-        <div>
-            <h2 style="font-size: 1.2rem; color: var(--accent);"><i class="fa-solid fa-chart-line"></i> Dashboard Petinggi Bengkel</h2>
-            <p style="font-size: 0.8rem; color: var(--text-muted);">Kelola pendaftaran pegawai, jam duty, dan sistem penggajian</p>
-        </div>
-        <button class="btn btn-out" style="flex: none; padding: 8px 16px; font-size:0.8rem;" onclick="logoutAdmin()"><i class="fa-solid fa-power-off"></i> Logout Admin</button>
-    </div>
-
-    <!-- SUB-NAVIGASI ADMIN -->
-    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-        <button class="tab-btn active" id="btnSubPegawai" onclick="switchAdminTab('pegawai')"><i class="fa-solid fa-users"></i> Kelola Pegawai & Jam Duty</button>
-        <button class="tab-btn" id="btnSubGaji" onclick="switchAdminTab('gaji')"><i class="fa-solid fa-money-bill-wave"></i> Pengaturan & Kalkulator Gaji</button>
-    </div>
-
-    <!-- SUB-SECTION 1: KELOLA PEGAWAI (Tampilan Lama Kamu) -->
-    <div id="subSectionPegawai">
-        <!-- TAMBAH PEGAWAI CARD -->
-        <!-- REKAP JAM KERJA CARD -->
-        <!-- RIWAYAT LOGS CARD -->
-        <!-- (Biarkan kode lama kamu di sini) -->
-    </div>
-
-    <!-- SUB-SECTION 2: PENGATURAN GAJI (MENU BARU) -->
-    <div id="subSectionGaji" class="hidden">
-        <!-- CARD SETTING TARIF PER JABATAN -->
-        <div class="card">
-            <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fa-solid fa-sliders"></i> Atur Tarif Gaji Per Jam (Per Jabatan)</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;" id="rateInputContainer">
-                <!-- Diisi otomatis oleh JavaScript -->
-            </div>
-            <button class="btn btn-primary" style="margin-top: 15px; width: 100%;" onclick="saveSalaryRates()"><i class="fa-solid fa-floppy-disk"></i> Simpan Tarif Gaji</button>
-        </div>
-
-        <!-- CARD REKAP PAYCHECK / TOTAL GAJI PEGAWAI -->
-        <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-                <h3 style="font-size: 1rem;"><i class="fa-solid fa-file-invoice-dollar"></i> Rekapitualisasi Gaji Pegawai (Paycheck)</h3>
-                <span style="font-size: 0.85rem; color: var(--accent); font-weight: bold;" id="totalPayrollAll">Total Estimasi Payout: $0</span>
-            </div>
-            <div style="overflow-x: auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nama IC</th>
-                            <th>Jabatan</th>
-                            <th>Total Jam</th>
-                            <th>Tarif / Jam</th>
-                            <th>Total Gaji Diterima</th>
-                        </tr>
-                    </thead>
-                    <tbody id="salarySummaryTable"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-</div>
-2. Bungkus Card Kelola Pegawai Lama Kamu
-Pastikan semua card lama kamu yang ada di Mode Admin (Form Tambah Pegawai, Tabel Rekap Jam Kerja, dan Tabel Log) dimasukkan ke dalam elemen <div id="subSectionPegawai"> ... </div> agar ketika tombol menu Gaji diklik, tampilan lama tersebut tersembunyi dengan rapi.
-
-3. Tambahkan Kode JavaScript Pengaturan Gaji
-Tambahkan logika berikut ke dalam bagian <script> di bagian bawah file:
-
-JavaScript
 // Database Default Tarif Gaji Per Jam
 let salaryRates = JSON.parse(localStorage.getItem('bengkel_salary_rates')) || {
     "Apprentice Mechanic": 500,
