@@ -153,6 +153,63 @@
 
         <!-- DASHBOARD ADMIN -->        
         <div id="adminDashboard" class="hidden">
+    
+            <div class="card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <h2 style="font-size: 1.2rem; color: var(--accent);"><i class="fa-solid fa-chart-line"></i> Dashboard Petinggi Bengkel</h2>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">Kelola pendaftaran pegawai dan rekapitulasi gaji</p>
+                </div>
+                <button class="btn btn-out" style="flex: none; padding: 8px 16px; font-size:0.8rem;" onclick="logoutAdmin()"><i class="fa-solid fa-power-off"></i> Logout Admin</button>
+            </div>
+
+            <!-- TAMBAH PEGAWAI -->
+            <div class="card">
+                <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fa-solid fa-user-plus"></i> Tambah Pegawai Baru</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+                    <div>
+                        <label>Nama IC</label>
+                        <input type="text" id="newMemberName" placeholder="Contoh: Alex_Stone">
+                    </div>
+                    <div>
+                        <label>Jabatan / Pangkat</label>
+                        <select id="newMemberRank">
+                            <option value="Apprentice Mechanic">Apprentice Mechanic</option>
+                            <option value="Senior Mechanic">Senior Mechanic</option>
+                            <option value="Master Mechanic">Master Mechanic</option>
+                            <option value="HRD">HRD</option>
+                            <option value="Manager">Manager</option>
+                            <option value="CEO">CEO</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>PIN Anggota</label>
+                        <input type="password" id="newMemberPin" placeholder="PIN (e.g. 1234)">
+                    </div>
+                </div>
+                <button class="btn btn-primary" style="margin-top: 15px; width: 100%;" onclick="addMember()"><i class="fa-solid fa-plus"></i> Daftarkan Anggota</button>
+            </div>
+
+            <!-- REKAPITULASI DENGAN FITUR RESET/HAPUS -->
+            <div class="card">
+                <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fa-solid fa-users"></i> Rekap Jam Kerja & Opsi Control</h3>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nama IC</th>
+                                <th>Jabatan</th>
+                                <th>Status</th>
+                                <th>Total Jam Duty</th>
+                                <th>Aksi Admin</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminSummaryTable">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
     <div class="card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap; gap:10px;">
         <div>
             <h2 style="font-size: 1.2rem; color: var(--accent);"><i class="fa-solid fa-chart-line"></i> Dashboard Petinggi Bengkel</h2>
@@ -210,61 +267,6 @@
     </div>
 
 </div>
-            <div class="card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap; gap:10px;">
-                <div>
-                    <h2 style="font-size: 1.2rem; color: var(--accent);"><i class="fa-solid fa-chart-line"></i> Dashboard Petinggi Bengkel</h2>
-                    <p style="font-size: 0.8rem; color: var(--text-muted);">Kelola pendaftaran pegawai dan rekapitulasi gaji</p>
-                </div>
-                <button class="btn btn-out" style="flex: none; padding: 8px 16px; font-size:0.8rem;" onclick="logoutAdmin()"><i class="fa-solid fa-power-off"></i> Logout Admin</button>
-            </div>
-
-            <!-- TAMBAH PEGAWAI -->
-            <div class="card">
-                <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fa-solid fa-user-plus"></i> Tambah Pegawai Baru</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
-                    <div>
-                        <label>Nama IC</label>
-                        <input type="text" id="newMemberName" placeholder="Contoh: Alex_Stone">
-                    </div>
-                    <div>
-                        <label>Jabatan / Pangkat</label>
-                        <select id="newMemberRank">
-                            <option value="Apprentice Mechanic">Apprentice Mechanic</option>
-                            <option value="Senior Mechanic">Senior Mechanic</option>
-                            <option value="Master Mechanic">Master Mechanic</option>
-                            <option value="HRD">HRD</option>
-                            <option value="Manager">Manager</option>
-                            <option value="CEO">CEO</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>PIN Anggota</label>
-                        <input type="password" id="newMemberPin" placeholder="PIN (e.g. 1234)">
-                    </div>
-                </div>
-                <button class="btn btn-primary" style="margin-top: 15px; width: 100%;" onclick="addMember()"><i class="fa-solid fa-plus"></i> Daftarkan Anggota</button>
-            </div>
-
-            <!-- REKAPITULASI DENGAN FITUR RESET/HAPUS -->
-            <div class="card">
-                <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fa-solid fa-users"></i> Rekap Jam Kerja & Opsi Control</h3>
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Nama IC</th>
-                                <th>Jabatan</th>
-                                <th>Status</th>
-                                <th>Total Jam Duty</th>
-                                <th>Aksi Admin</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminSummaryTable">
-                            <!-- Populated by JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
 
             <!-- REKAPITULASI JAM KERJA -->
 <div class="card">
