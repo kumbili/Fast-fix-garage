@@ -68,9 +68,10 @@
         .alert-error { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
         .alert-success { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid var(--success); }
 
-        .action-btn-sm { padding: 6px 10px; border-radius: 6px; border: none; font-weight: 600; font-size: 0.75rem; cursor: pointer; margin-right: 4px; }
+        .action-btn-sm { padding: 6px 10px; border-radius: 6px; border: none; font-weight: 600; font-size: 0.75rem; cursor: pointer; margin-right: 4px; margin-bottom: 4px; display: inline-flex; align-items: center; gap: 4px; }
         .btn-del { background: var(--danger); color: #fff; }
         .btn-reset { background: #3b82f6; color: #fff; }
+        .btn-force-off { background: #ea580c; color: #fff; }
 
         /* Widget Keuangan Specific Styles */
         .finance-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px; }
@@ -693,6 +694,40 @@
         alert(`Pegawai ${name} (${rank}) berhasil didaftarkan!`);
     }
 
+    function forceOffDuty(empId) {
+        const emp = employees[empId];
+        if (!emp) return;
+
+        if (emp.status === 'OFF DUTY') {
+            alert(`${emp.name} sudah dalam status OFF DUTY!`);
+            return;
+        }
+
+        if (confirm(`Paksa OFF DUTY untuk pegawai ${emp.name}? Jam kerja mereka akan dihitung secara otomatis sampai saat ini.`)) {
+            const now = new Date().getTime();
+            let sessionTime = 0;
+            if (emp.lastClockIn) {
+                sessionTime = now - emp.lastClockIn;
+            }
+
+            // Update status ke OFF DUTY di Database
+            db.ref(`employees/${empId}`).update({
+                status: 'OFF DUTY',
+                lastClockIn: null,
+                totalTimeMs: (emp.totalTimeMs || 0) + sessionTime
+            });
+
+            // Catat transaksi di Log
+            db.ref('logs').push({
+                time: new Date().toLocaleString('id-ID'),
+                name: emp.name,
+                action: 'OFF DUTY (By Admin)'
+            });
+
+            alert(`Berhasil merubah status ${emp.name} menjadi OFF DUTY!`);
+        }
+    }
+
     function resetTime(empId) {
         if (confirm('Apakah kamu yakin ingin mereset total jam kerja pegawai ini menjadi 0 (Misal saat gajian)?')) {
             db.ref(`employees/${empId}`).update({
@@ -720,13 +755,16 @@
                 currentTotal += (new Date().getTime() - emp.lastClockIn);
             }
 
+            const isOnDuty = emp.status === 'ON DUTY';
+
             tbody.innerHTML += `
                 <tr>
                     <td><strong>${emp.name}</strong></td>
                     <td>${emp.rank}</td>
-                    <td><span class="status-badge ${emp.status === 'ON DUTY' ? 'badge-on' : 'badge-off'}">${emp.status}</span></td>
+                    <td><span class="status-badge ${isOnDuty ? 'badge-on' : 'badge-off'}">${emp.status}</span></td>
                     <td>${formatMsToTime(currentTotal)}</td>
                     <td>
+                        ${isOnDuty ? `<button class="action-btn-sm btn-force-off" onclick="forceOffDuty('${key}')" title="Paksa Off Duty"><i class="fa-solid fa-power-off"></i> Force Off</button>` : ''}
                         <button class="action-btn-sm btn-reset" onclick="resetTime('${key}')" title="Reset Jam Kerja"><i class="fa-solid fa-rotate-right"></i> Reset</button>
                         <button class="action-btn-sm btn-del" onclick="deleteMember('${key}')" title="Hapus Pegawai"><i class="fa-solid fa-trash"></i> Hapus</button>
                     </td>
@@ -746,11 +784,12 @@
         }
 
         logs.forEach(log => {
+            const isOn = log.action === 'ON DUTY';
             tbody.innerHTML += `
                 <tr>
                     <td>${log.time || '-'}</td>
                     <td><strong>${log.name || '-'}</strong></td>
-                    <td><span class="status-badge ${log.action === 'ON DUTY' ? 'badge-on' : 'badge-off'}">${log.action || '-'}</span></td>
+                    <td><span class="status-badge ${isOn ? 'badge-on' : 'badge-off'}">${log.action || '-'}</span></td>
                 </tr>
             `;
         });
