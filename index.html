@@ -209,6 +209,31 @@
                 </div>
             </div>
 
+            <!-- REKAPITULASI JAM KERJA -->
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+        <h3 style="font-size: 1rem;"><i class="fa-solid fa-users"></i> Rekap Jam Kerja & Opsi Control</h3>
+        <!-- TOMBOL EXPORT EXCEL BARU -->
+        <button class="action-btn-sm" onclick="exportToExcel()" style="background-color: #22c55e; color: white; padding: 8px 14px; font-size: 0.8rem; border-radius: 8px;">
+            <i class="fa-solid fa-file-excel"></i> Export ke Excel (.csv)
+        </button>
+    </div>
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nama IC</th>
+                    <th>Jabatan</th>
+                    <th>Status</th>
+                    <th>Total Jam Duty</th>
+                    <th>Aksi Admin</th>
+                </tr>
+            </thead>
+            <tbody id="adminSummaryTable"></tbody>
+        </table>
+    </div>
+</div>
+
             <!-- RIWAYAT LOGS -->
             <div class="card">
                 <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fa-solid fa-clock-rotate-left"></i> 15 Log Transaksi Terakhir</h3>
@@ -457,32 +482,7 @@
             db.ref(`employees/${empId}`).remove();
         }
     }
-    
-<!-- REKAPITULASI JAM KERJA -->
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-        <h3 style="font-size: 1rem;"><i class="fa-solid fa-users"></i> Rekap Jam Kerja & Opsi Control</h3>
-        <!-- TOMBOL EXPORT EXCEL BARU -->
-        <button class="action-btn-sm" onclick="exportToExcel()" style="background-color: #22c55e; color: white; padding: 8px 14px; font-size: 0.8rem; border-radius: 8px;">
-            <i class="fa-solid fa-file-excel"></i> Export ke Excel (.csv)
-        </button>
-    </div>
-    <div style="overflow-x: auto;">
-        <table>
-            <thead>
-                <tr>
-                    <th>Nama IC</th>
-                    <th>Jabatan</th>
-                    <th>Status</th>
-                    <th>Total Jam Duty</th>
-                    <th>Aksi Admin</th>
-                </tr>
-            </thead>
-            <tbody id="adminSummaryTable"></tbody>
-        </table>
-    </div>
-</div>
-    
+       
     function renderAdminDashboard() {
         const tbody = document.getElementById('adminSummaryTable');
         tbody.innerHTML = '';
