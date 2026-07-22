@@ -764,7 +764,9 @@
                     <td><span class="status-badge ${isOnDuty ? 'badge-on' : 'badge-off'}">${emp.status}</span></td>
                     <td>${formatMsToTime(currentTotal)}</td>
                     <td>
-                        ${isOnDuty ? `<button class="action-btn-sm btn-force-off" onclick="forceOffDuty('${key}')" title="Paksa Off Duty"><i class="fa-solid fa-power-off"></i> Force Off</button>` : ''}
+                        <button class="action-btn-sm btn-force-off" onclick="forceOffDuty('${key}')" title="Paksa Off Duty">
+                        <i class="fa-solid fa-power-off"></i> Force Off
+                        </button>
                         <button class="action-btn-sm btn-reset" onclick="resetTime('${key}')" title="Reset Jam Kerja"><i class="fa-solid fa-rotate-right"></i> Reset</button>
                         <button class="action-btn-sm btn-del" onclick="deleteMember('${key}')" title="Hapus Pegawai"><i class="fa-solid fa-trash"></i> Hapus</button>
                     </td>
