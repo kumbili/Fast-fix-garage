@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Duty Portal - Mechanic Workshop RP</title>
+    
     <!-- Google Fonts & FontAwesome -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -153,184 +154,138 @@
 
         <!-- DASHBOARD ADMIN -->        
         <div id="adminDashboard" class="hidden">
-    
+            
             <div class="card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap; gap:10px;">
                 <div>
                     <h2 style="font-size: 1.2rem; color: var(--accent);"><i class="fa-solid fa-chart-line"></i> Dashboard Petinggi Bengkel</h2>
-                    <p style="font-size: 0.8rem; color: var(--text-muted);">Kelola pendaftaran pegawai dan rekapitulasi gaji</p>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">Kelola pendaftaran pegawai, jam duty, dan sistem penggajian</p>
                 </div>
                 <button class="btn btn-out" style="flex: none; padding: 8px 16px; font-size:0.8rem;" onclick="logoutAdmin()"><i class="fa-solid fa-power-off"></i> Logout Admin</button>
             </div>
 
-            <!-- TAMBAH PEGAWAI -->
-            <div class="card">
-                <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fa-solid fa-user-plus"></i> Tambah Pegawai Baru</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
-                    <div>
-                        <label>Nama IC</label>
-                        <input type="text" id="newMemberName" placeholder="Contoh: Alex_Stone">
+            <!-- SUB-NAVIGASI ADMIN -->
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button class="tab-btn active" id="btnSubPegawai" onclick="switchAdminTab('pegawai')"><i class="fa-solid fa-users"></i> Kelola Pegawai & Jam Duty</button>
+                <button class="tab-btn" id="btnSubGaji" onclick="switchAdminTab('gaji')"><i class="fa-solid fa-money-bill-wave"></i> Pengaturan & Kalkulator Gaji</button>
+            </div>
+
+            <!-- SUB-SECTION 1: KELOLA PEGAWAI -->
+            <div id="subSectionPegawai">
+                <!-- TAMBAH PEGAWAI CARD -->
+                <div class="card">
+                    <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fa-solid fa-user-plus"></i> Tambah Pegawai Baru</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+                        <div>
+                            <label>Nama IC</label>
+                            <input type="text" id="newMemberName" placeholder="Contoh: Alex_Stone">
+                        </div>
+                        <div>
+                            <label>Jabatan / Pangkat</label>
+                            <select id="newMemberRank">
+                                <option value="Apprentice Mechanic">Apprentice Mechanic</option>
+                                <option value="Senior Mechanic">Senior Mechanic</option>
+                                <option value="Master Mechanic">Master Mechanic</option>
+                                <option value="HRD">HRD</option>
+                                <option value="Manager">Manager</option>
+                                <option value="CEO">CEO</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>PIN Anggota</label>
+                            <input type="password" id="newMemberPin" placeholder="PIN (e.g. 1234)">
+                        </div>
                     </div>
-                    <div>
-                        <label>Jabatan / Pangkat</label>
-                        <select id="newMemberRank">
-                            <option value="Apprentice Mechanic">Apprentice Mechanic</option>
-                            <option value="Senior Mechanic">Senior Mechanic</option>
-                            <option value="Master Mechanic">Master Mechanic</option>
-                            <option value="HRD">HRD</option>
-                            <option value="Manager">Manager</option>
-                            <option value="CEO">CEO</option>
-                        </select>
+                    <button class="btn btn-primary" style="margin-top: 15px; width: 100%;" onclick="addMember()"><i class="fa-solid fa-plus"></i> Daftarkan Anggota</button>
+                </div>
+
+                <!-- REKAP JAM KERJA CARD -->
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <h3 style="font-size: 1rem;"><i class="fa-solid fa-users"></i> Rekap Jam Kerja & Opsi Control</h3>
+                        <button class="action-btn-sm" onclick="exportToExcel()" style="background-color: #22c55e; color: white; padding: 8px 14px; font-size: 0.8rem; border-radius: 8px;">
+                            <i class="fa-solid fa-file-excel"></i> Export ke Excel (.csv)
+                        </button>
                     </div>
-                    <div>
-                        <label>PIN Anggota</label>
-                        <input type="password" id="newMemberPin" placeholder="PIN (e.g. 1234)">
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nama IC</th>
+                                    <th>Jabatan</th>
+                                    <th>Status</th>
+                                    <th>Total Jam Duty</th>
+                                    <th>Aksi Admin</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminSummaryTable"></tbody>
+                        </table>
                     </div>
                 </div>
-                <button class="btn btn-primary" style="margin-top: 15px; width: 100%;" onclick="addMember()"><i class="fa-solid fa-plus"></i> Daftarkan Anggota</button>
-            </div>
 
-            <!-- REKAPITULASI DENGAN FITUR RESET/HAPUS -->
-            <div class="card">
-                <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fa-solid fa-users"></i> Rekap Jam Kerja & Opsi Control</h3>
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Nama IC</th>
-                                <th>Jabatan</th>
-                                <th>Status</th>
-                                <th>Total Jam Duty</th>
-                                <th>Aksi Admin</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminSummaryTable">
-                            <!-- Populated by JS -->
-                        </tbody>
-                    </table>
+                <!-- RIWAYAT LOGS CARD -->
+                <div class="card">
+                    <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fa-solid fa-clock-rotate-left"></i> 15 Log Transaksi Terakhir</h3>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Waktu</th>
+                                    <th>Nama IC</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminLogsTable"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-            
-    <div class="card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap; gap:10px;">
-        <div>
-            <h2 style="font-size: 1.2rem; color: var(--accent);"><i class="fa-solid fa-chart-line"></i> Dashboard Petinggi Bengkel</h2>
-            <p style="font-size: 0.8rem; color: var(--text-muted);">Kelola pendaftaran pegawai, jam duty, dan sistem penggajian</p>
-        </div>
-        <button class="btn btn-out" style="flex: none; padding: 8px 16px; font-size:0.8rem;" onclick="logoutAdmin()"><i class="fa-solid fa-power-off"></i> Logout Admin</button>
-    </div>
 
-    <!-- SUB-NAVIGASI ADMIN -->
-    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-        <button class="tab-btn active" id="btnSubPegawai" onclick="switchAdminTab('pegawai')"><i class="fa-solid fa-users"></i> Kelola Pegawai & Jam Duty</button>
-        <button class="tab-btn" id="btnSubGaji" onclick="switchAdminTab('gaji')"><i class="fa-solid fa-money-bill-wave"></i> Pengaturan & Kalkulator Gaji</button>
-    </div>
+            <!-- SUB-SECTION 2: PENGATURAN GAJI -->
+            <div id="subSectionGaji" class="hidden">
+                <!-- CARD SETTING TARIF PER JABATAN -->
+                <div class="card">
+                    <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fa-solid fa-sliders"></i> Atur Tarif Gaji Per Jam (Per Jabatan)</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;" id="rateInputContainer"></div>
+                    <button class="btn btn-primary" style="margin-top: 15px; width: 100%;" onclick="saveSalaryRates()"><i class="fa-solid fa-floppy-disk"></i> Simpan Tarif Gaji</button>
+                </div>
 
-    <!-- SUB-SECTION 1: KELOLA PEGAWAI (Tampilan Lama Kamu) -->
-    <div id="subSectionPegawai">
-        <!-- TAMBAH PEGAWAI CARD -->
-        <!-- REKAP JAM KERJA CARD -->
-        <!-- RIWAYAT LOGS CARD -->
-        <!-- (Biarkan kode lama kamu di sini) -->
-    </div>
-
-    <!-- SUB-SECTION 2: PENGATURAN GAJI (MENU BARU) -->
-    <div id="subSectionGaji" class="hidden">
-        <!-- CARD SETTING TARIF PER JABATAN -->
-        <div class="card">
-            <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fa-solid fa-sliders"></i> Atur Tarif Gaji Per Jam (Per Jabatan)</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;" id="rateInputContainer">
-                <!-- Diisi otomatis oleh JavaScript -->
-            </div>
-            <button class="btn btn-primary" style="margin-top: 15px; width: 100%;" onclick="saveSalaryRates()"><i class="fa-solid fa-floppy-disk"></i> Simpan Tarif Gaji</button>
-        </div>
-
-        <!-- CARD REKAP PAYCHECK / TOTAL GAJI PEGAWAI -->
-        <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-                <h3 style="font-size: 1rem;"><i class="fa-solid fa-file-invoice-dollar"></i> Rekapitualisasi Gaji Pegawai (Paycheck)</h3>
-                <span style="font-size: 0.85rem; color: var(--accent); font-weight: bold;" id="totalPayrollAll">Total Estimasi Payout: $0</span>
-            </div>
-            <div style="overflow-x: auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nama IC</th>
-                            <th>Jabatan</th>
-                            <th>Total Jam</th>
-                            <th>Tarif / Jam</th>
-                            <th>Total Gaji Diterima</th>
-                        </tr>
-                    </thead>
-                    <tbody id="salarySummaryTable"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-</div>
-
-            <!-- REKAPITULASI JAM KERJA -->
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-        <h3 style="font-size: 1rem;"><i class="fa-solid fa-users"></i> Rekap Jam Kerja & Opsi Control</h3>
-        <!-- TOMBOL EXPORT EXCEL BARU -->
-        <button class="action-btn-sm" onclick="exportToExcel()" style="background-color: #22c55e; color: white; padding: 8px 14px; font-size: 0.8rem; border-radius: 8px;">
-            <i class="fa-solid fa-file-excel"></i> Export ke Excel (.csv)
-        </button>
-    </div>
-    <div style="overflow-x: auto;">
-        <table>
-            <thead>
-                <tr>
-                    <th>Nama IC</th>
-                    <th>Jabatan</th>
-                    <th>Status</th>
-                    <th>Total Jam Duty</th>
-                    <th>Aksi Admin</th>
-                </tr>
-            </thead>
-            <tbody id="adminSummaryTable"></tbody>
-        </table>
-    </div>
-</div>
-
-            <!-- RIWAYAT LOGS -->
-            <div class="card">
-                <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fa-solid fa-clock-rotate-left"></i> 15 Log Transaksi Terakhir</h3>
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Waktu</th>
-                                <th>Nama IC</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminLogsTable">
-                            <!-- Populated by JS -->
-                        </tbody>
-                    </table>
+                <!-- CARD REKAP PAYCHECK / TOTAL GAJI PEGAWAI -->
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <h3 style="font-size: 1rem;"><i class="fa-solid fa-file-invoice-dollar"></i> Rekapitualisasi Gaji Pegawai (Paycheck)</h3>
+                        <span style="font-size: 0.85rem; color: var(--accent); font-weight: bold;" id="totalPayrollAll">Total Estimasi Payout: $0</span>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nama IC</th>
+                                    <th>Jabatan</th>
+                                    <th>Total Jam</th>
+                                    <th>Tarif / Jam</th>
+                                    <th>Total Gaji Diterima</th>
+                                </tr>
+                            </thead>
+                            <tbody id="salarySummaryTable"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
+
         </div>
-
     </div>
-
 </div>
 
 <script>
     // =========================================================================
     // CONFIGURATION & DATABASE SETTINGS
     // =========================================================================
-    
-    // Password Admin untuk Petinggi Bengkel (HRD / Manager / CEO)
     const ADMIN_PASSWORD = "adminbengkel123";
 
-    // KONEKSI DATABASE FIREBASE REALTIME (GRATIS SELAMANYA)
     const firebaseConfig = {
         databaseURL: "https://fastfix-garage-duty-log-default-rtdb.asia-southeast1.firebasedatabase.app/"
     };
 
-    // Inisialisasi Firebase
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
@@ -339,12 +294,23 @@
     let employees = {};
     let logs = [];
 
+    // Tarif Gaji Default (Local Storage Supported)
+    let salaryRates = JSON.parse(localStorage.getItem('bengkel_salary_rates')) || {
+        "Apprentice Mechanic": 500,
+        "Senior Mechanic": 800,
+        "Master Mechanic": 1200,
+        "HRD": 1500,
+        "Manager": 1800,
+        "CEO": 2500
+    };
+
     // Realtime Listener Data Pegawai
     db.ref('employees').on('value', (snapshot) => {
         employees = snapshot.val() || {};
         populateUserDropdown();
         renderUserSummary();
         renderAdminDashboard();
+        renderSalarySummary();
     });
 
     // Realtime Listener Data Logs
@@ -374,7 +340,7 @@
     function switchTab(tab) {
         document.getElementById('userSection').classList.toggle('hidden', tab !== 'user');
         document.getElementById('adminSection').classList.toggle('hidden', tab !== 'admin');
-        const btns = document.querySelectorAll('.tab-btn');
+        const btns = document.querySelectorAll('.nav-tabs .tab-btn');
         btns[0].classList.toggle('active', tab === 'user');
         btns[1].classList.toggle('active', tab === 'admin');
     }
@@ -448,7 +414,6 @@
             showAlert('userAlert', `Terima kasih atas kerja kerasnya, ${emp.name}! (Clock Out Berhasil)`, 'success');
         }
 
-        // Catat Log
         db.ref('logs').push({
             time: new Date().toLocaleString('id-ID'),
             name: emp.name,
@@ -488,145 +453,128 @@
     // =========================================================================
     // MODE ADMIN PROCESS
     // =========================================================================
-// Database Default Tarif Gaji Per Jam
-let salaryRates = JSON.parse(localStorage.getItem('bengkel_salary_rates')) || {
-    "Apprentice Mechanic": 500,
-    "Senior Mechanic": 800,
-    "Master Mechanic": 1200,
-    "HRD": 1500,
-    "Manager": 1800,
-    "CEO": 2500
-};
+    function switchAdminTab(tab) {
+        document.getElementById('subSectionPegawai').classList.toggle('hidden', tab !== 'pegawai');
+        document.getElementById('subSectionGaji').classList.toggle('hidden', tab !== 'gaji');
+        
+        document.getElementById('btnSubPegawai').classList.toggle('active', tab === 'pegawai');
+        document.getElementById('btnSubGaji').classList.toggle('active', tab === 'gaji');
 
-// Navigasi Sub-Tab Admin
-function switchAdminTab(tab) {
-    document.getElementById('subSectionPegawai').classList.toggle('hidden', tab !== 'pegawai');
-    document.getElementById('subSectionGaji').classList.toggle('hidden', tab !== 'gaji');
-    
-    document.getElementById('btnSubPegawai').classList.toggle('active', tab === 'pegawai');
-    document.getElementById('btnSubGaji').classList.toggle('active', tab === 'gaji');
+        if (tab === 'gaji') {
+            renderSalaryInputs();
+            renderSalarySummary();
+        }
+    }
 
-    if (tab === 'gaji') {
-        renderSalaryInputs();
+    function renderSalaryInputs() {
+        const container = document.getElementById('rateInputContainer');
+        container.innerHTML = '';
+
+        Object.keys(salaryRates).forEach(rank => {
+            container.innerHTML += `
+                <div>
+                    <label style="font-size:0.75rem;">${rank}</label>
+                    <input type="number" id="rate_${rank.replace(/\s+/g, '_')}" value="${salaryRates[rank]}" placeholder="Tarif $">
+                </div>
+            `;
+        });
+    }
+
+    function saveSalaryRates() {
+        Object.keys(salaryRates).forEach(rank => {
+            const inputId = `rate_${rank.replace(/\s+/g, '_')}`;
+            const inputEl = document.getElementById(inputId);
+            if (inputEl) {
+                salaryRates[rank] = parseFloat(inputEl.value) || 0;
+            }
+        });
+
+        localStorage.setItem('bengkel_salary_rates', JSON.stringify(salaryRates));
+        alert('Tarif gaji per jabatan berhasil diperbarui!');
         renderSalarySummary();
     }
-}
 
-// Render Input Form Tarif Gaji
-function renderSalaryInputs() {
-    const container = document.getElementById('rateInputContainer');
-    container.innerHTML = '';
+    function renderSalarySummary() {
+        const tbody = document.getElementById('salarySummaryTable');
+        if (!tbody) return;
+        tbody.innerHTML = '';
 
-    Object.keys(salaryRates).forEach(rank => {
-        container.innerHTML += `
-            <div>
-                <label style="font-size:0.75rem;">${rank}</label>
-                <input type="number" id="rate_${rank.replace(/\s+/g, '_')}" value="${salaryRates[rank]}" placeholder="Tarif $">
-            </div>
-        `;
-    });
-}
+        let grandTotalPayroll = 0;
 
-// Simpan Tarif Gaji
-function saveSalaryRates() {
-    Object.keys(salaryRates).forEach(rank => {
-        const inputId = `rate_${rank.replace(/\s+/g, '_')}`;
-        const val = parseFloat(document.getElementById(inputId).value) || 0;
-        salaryRates[rank] = val;
-    });
-
-    localStorage.setItem('bengkel_salary_rates', JSON.stringify(salaryRates));
-    alert('Tarif gaji per jabatan berhasil diperbarui!');
-    renderSalarySummary();
-}
-
-// Render Tabel Rekapitualisasi Gaji Pegawai
-function renderSalarySummary() {
-    const tbody = document.getElementById('salarySummaryTable');
-    tbody.innerHTML = '';
-
-    let grandTotalPayroll = 0;
-
-    if (Object.keys(employees).length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted)">Belum ada data pegawai.</td></tr>';
-        document.getElementById('totalPayrollAll').innerText = 'Total Estimasi Payout: $0';
-        return;
-    }
-
-    Object.keys(employees).forEach(key => {
-        const emp = employees[key];
-        
-        let currentTotalMs = emp.totalTimeMs || 0;
-        if (emp.status === 'ON DUTY' && emp.lastClockIn) {
-            currentTotalMs += (new Date().getTime() - emp.lastClockIn);
+        if (Object.keys(employees).length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted)">Belum ada data pegawai.</td></tr>';
+            document.getElementById('totalPayrollAll').innerText = 'Total Estimasi Payout: $0';
+            return;
         }
 
-        // Hitung jam desimal
-        let hoursDecimal = (currentTotalMs / (1000 * 60 * 60));
-        let rate = salaryRates[emp.rank] || 0;
-        let totalSalary = Math.round(hoursDecimal * rate);
+        Object.keys(employees).forEach(key => {
+            const emp = employees[key];
+            
+            let currentTotalMs = emp.totalTimeMs || 0;
+            if (emp.status === 'ON DUTY' && emp.lastClockIn) {
+                currentTotalMs += (new Date().getTime() - emp.lastClockIn);
+            }
 
-        grandTotalPayroll += totalSalary;
+            let hoursDecimal = (currentTotalMs / (1000 * 60 * 60));
+            let rate = salaryRates[emp.rank] || 0;
+            let totalSalary = Math.round(hoursDecimal * rate);
 
-        tbody.innerHTML += `
-            <tr>
-                <td><strong>${emp.name}</strong></td>
-                <td>${emp.rank}</td>
-                <td>${formatMsToTime(currentTotalMs)} (${hoursDecimal.toFixed(2)} Jam)</td>
-                <td>$${rate.toLocaleString('en-US')}/jam</td>
-                <td><strong style="color:var(--success); font-size:1rem;">$${totalSalary.toLocaleString('en-US')}</strong></td>
-            </tr>
-        `;
-    });
+            grandTotalPayroll += totalSalary;
 
-    document.getElementById('totalPayrollAll').innerText = `Total Estimasi Payout: $${grandTotalPayroll.toLocaleString('en-US')}`;
-}
-    
-    // Function untuk Export Rekap Jam Kerja ke file Excel (.csv)
-// Function Export Excel yang SUDAH TERHUBUNG dengan Tarif Gaji
-function exportToExcel() {
-    if (Object.keys(employees).length === 0) {
-        alert('Tidak ada data pegawai untuk di-export!');
-        return;
+            tbody.innerHTML += `
+                <tr>
+                    <td><strong>${emp.name}</strong></td>
+                    <td>${emp.rank}</td>
+                    <td>${formatMsToTime(currentTotalMs)} (${hoursDecimal.toFixed(2)} Jam)</td>
+                    <td>$${rate.toLocaleString('en-US')}/jam</td>
+                    <td><strong style="color:var(--success); font-size:1rem;">$${totalSalary.toLocaleString('en-US')}</strong></td>
+                </tr>
+            `;
+        });
+
+        document.getElementById('totalPayrollAll').innerText = `Total Estimasi Payout: $${grandTotalPayroll.toLocaleString('en-US')}`;
     }
 
-    // Header Kolom di Excel (Ditambahkan Tarif & Total Gaji)
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Nama IC,Jabatan,Status,Total Jam (Formatted),Total Jam (Decimal),Tarif Per Jam,Total Gaji Diterima\n";
-
-    Object.keys(employees).forEach(key => {
-        const emp = employees[key];
-        
-        let currentTotalMs = emp.totalTimeMs || 0;
-        if (emp.status === 'ON DUTY' && emp.lastClockIn) {
-            currentTotalMs += (new Date().getTime() - emp.lastClockIn);
+    function exportToExcel() {
+        if (Object.keys(employees).length === 0) {
+            alert('Tidak ada data pegawai untuk di-export!');
+            return;
         }
 
-        let formattedTime = formatMsToTime(currentTotalMs);
-        let hoursDecimal = (currentTotalMs / (1000 * 60 * 60)).toFixed(2);
-        
-        // Ambil tarif gaji per jam dari database salaryRates
-        let rate = salaryRates[emp.rank] || 0;
-        let totalSalary = Math.round(hoursDecimal * rate);
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "Nama IC,Jabatan,Status,Total Jam (Formatted),Total Jam (Decimal),Tarif Per Jam,Total Gaji Diterima\n";
 
-        let cleanName = emp.name.replace(/,/g, '');
-        let cleanRank = emp.rank.replace(/,/g, '');
-        
-        csvContent += `"${cleanName}","${cleanRank}","${emp.status}","${formattedTime}",${hoursDecimal},${rate},${totalSalary}\n`;
-    });
+        Object.keys(employees).forEach(key => {
+            const emp = employees[key];
+            
+            let currentTotalMs = emp.totalTimeMs || 0;
+            if (emp.status === 'ON DUTY' && emp.lastClockIn) {
+                currentTotalMs += (new Date().getTime() - emp.lastClockIn);
+            }
 
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    
-    const today = new Date().toISOString().split('T')[0];
-    link.setAttribute("download", `Rekap_Gaji_Bengkel_${today}.csv`);
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-    
+            let formattedTime = formatMsToTime(currentTotalMs);
+            let hoursDecimal = (currentTotalMs / (1000 * 60 * 60)).toFixed(2);
+            let rate = salaryRates[emp.rank] || 0;
+            let totalSalary = Math.round(hoursDecimal * rate);
+
+            let cleanName = emp.name.replace(/,/g, '');
+            let cleanRank = emp.rank.replace(/,/g, '');
+            
+            csvContent += `"${cleanName}","${cleanRank}","${emp.status}","${formattedTime}",${hoursDecimal},${rate},${totalSalary}\n`;
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        
+        const today = new Date().toISOString().split('T')[0];
+        link.setAttribute("download", `Rekap_Gaji_Bengkel_${today}.csv`);
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
     function loginAdmin() {
         const inputPass = document.getElementById('adminPasswordInput').value;
         if (inputPass === ADMIN_PASSWORD) {
@@ -680,9 +628,10 @@ function exportToExcel() {
             db.ref(`employees/${empId}`).remove();
         }
     }
-       
+
     function renderAdminDashboard() {
         const tbody = document.getElementById('adminSummaryTable');
+        if (!tbody) return;
         tbody.innerHTML = '';
 
         Object.keys(employees).forEach(key => {
@@ -709,19 +658,24 @@ function exportToExcel() {
 
     function renderAdminLogs() {
         const tbody = document.getElementById('adminLogsTable');
+        if (!tbody) return;
         tbody.innerHTML = '';
+
+        if (logs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--text-muted)">Belum ada log aktivitas.</td></tr>';
+            return;
+        }
 
         logs.forEach(log => {
             tbody.innerHTML += `
                 <tr>
-                    <td>${log.time}</td>
-                    <td><strong>${log.name}</strong></td>
-                    <td><strong style="color: ${log.action === 'ON DUTY' ? 'var(--success)' : 'var(--danger)'}">${log.action}</strong></td>
+                    <td>${log.time || '-'}</td>
+                    <td><strong>${log.name || '-'}</strong></td>
+                    <td><span class="status-badge ${log.action === 'ON DUTY' ? 'badge-on' : 'badge-off'}">${log.action || '-'}</span></td>
                 </tr>
             `;
         });
     }
 </script>
-
 </body>
 </html>
