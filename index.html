@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duty Portal - Mechanic Workshop RP</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --bg: #0b0f19;
+            --surface: #151c2c;
+            --surface-hover: #1e293b;
+            --accent: #f59e0b;
+            --accent-glow: rgba(245, 158, 11, 0.25);
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --border: #243044;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+
+        .header { text-align: center; margin-bottom: 25px; margin-top: 10px; }
+        .header h1 { color: var(--accent); font-size: 2rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; text-shadow: 0 0 20px var(--accent-glow); }
+        .header p { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
+
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 25px; background: var(--surface); padding: 6px; border-radius: 12px; border: 1px solid var(--border); }
+        .tab-btn { background: transparent; border: none; color: var(--text-muted); padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.85rem; transition: 0.2s; }
+        .tab-btn.active { background: var(--accent); color: #000; box-shadow: 0 0 15px var(--accent-glow); }
+
+        .container { width: 100%; max-width: 850px; }
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px; }
+
+        .form-group { margin-bottom: 18px; }
+        label { display: block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+        input, select { width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border); background: #0c1017; color: #fff; font-size: 0.95rem; outline: none; transition: 0.2s; }
+        input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+
+        .btn-group { display: flex; gap: 12px; margin-top: 25px; }
+        button.btn { flex: 1; padding: 14px; border: none; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .btn-in { background-color: var(--success); color: white; }
+        .btn-in:hover { filter: brightness(1.1); box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
+        .btn-out { background-color: var(--danger); color: white; }
+        .btn-out:hover { filter: brightness(1.1); box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+        .btn-primary { background-color: var(--accent); color: #000; }
+        .btn-primary:hover { filter: brightness(1.1); }
+
+        .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
+        .badge-on { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid var(--success); }
+        .badge-off { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        th { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .hidden { display: none !important; }
+        .alert { padding: 12px; border-radius: 10px; margin-bottom: 18px; font-size: 0.85rem; font-weight: 600; text-align: center; }
+        .alert-error { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
+        .alert-success { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid var(--success); }
+
+        .action-btn-sm { padding: 6px 10px; border-radius: 6px; border: none; font-weight: 600; font-size: 0.75rem; cursor: pointer; margin-right: 4px; }
+        .btn-del { background: var(--danger); color: #fff; }
+        .btn-reset { background: #3b82f6; color: #fff; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1><i class="fa-solid fa-wrench"></i> CUSTOM WORKSHOP</h1>
+    <p>Portal Absensi & Management Jam Duty Pegawai</p>
+</div>
+
+<div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('user')"><i class="fa-solid fa-clock"></i> Absensi Anggota</button>
+    <button class="tab-btn" onclick="switchTab('admin')"><i class="fa-solid fa-user-shield"></i> Mode Admin (HRD / CEO)</button>
+</div>
+
+<div class="container">
+    
+    <!-- SECTION 1: PORTAL ANGGOTA -->
+    <div id="userSection">
+        <div class="card">
+            <h2 style="margin-bottom: 18px; font-size: 1.2rem; display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-right-to-bracket" style="color:var(--accent)"></i> Form Duty Pegawai
+            </h2>
+            <div id="userAlert"></div>
+
+            <div class="form-group">
+                <label>Pilih Nama Anggota IC</label>
+                <select id="userSelect" onchange="updateUserStatusView()">
+                    <option value="" disabled selected>-- Memuat Data Pegawai... --</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>PIN / Password Anggota</label>
+                <input type="password" id="userPin" placeholder="Masukkan PIN 4-6 Digit">
+            </div>
+
+            <div id="statusInfo" style="margin: 15px 0; font-size: 0.9rem; color: var(--text-muted); display:flex; align-items:center; gap:10px;">
+                <span>Status Saat Ini:</span>
+                <span id="currentStatusBadge" class="status-badge badge-off"><i class="fa-solid fa-circle-dot"></i> OFF DUTY</span>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-in" onclick="processDuty('ON DUTY')"><i class="fa-solid fa-play"></i> Clock In (On Duty)</button>
+                <button class="btn btn-out" onclick="processDuty('OFF DUTY')"><i class="fa-solid fa-stop"></i> Clock Out (Off Duty)</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-bottom: 10px; font-size: 1rem;"><i class="fa-solid fa-list-check"></i> Summary Jam Kerja Pegawai</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nama IC</th>
+                        <th>Jabatan</th>
+                        <th>Status</th>
+                        <th>Total Waktu Kerja</th>
+                    </tr>
+                </thead>
+                <tbody id="userSummaryTable">
+                    <tr><td colspan="4" style="text-align:center; color:var(--text-muted)">Memuat data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- SECTION 2: MODE ADMIN -->
+    <div id="adminSection" class="hidden">
+        
+        <!-- LOGIN ADMIN -->
+        <div id="adminLoginForm" class="card">
+            <h2 style="margin-bottom: 10px; font-size: 1.2rem;"><i class="fa-solid fa-lock" style="color:var(--accent)"></i> Verification Mode Admin</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">Akses khusus Petinggi Bengkel (HRD, Manager, CEO).</p>
+            <div id="adminLoginAlert"></div>
+
+            <div class="form-group">
+                <label>Password Admin</label>
+                <input type="password" id="adminPasswordInput" placeholder="Masukkan Password Admin">
+            </div>
+            <button class="btn btn-primary" style="width: 100%;" onclick="loginAdmin()"><i class="fa-solid fa-key"></i> Masuk Dashboard</button>
+        </div>
+
+        <!-- DASHBOARD ADMIN -->
+        <div id="adminDashboard" class="hidden">
+            <div class="card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <h2 style="font-size: 1.2rem; color: var(--accent);"><i class="fa-solid fa-chart-line"></i> Dashboard Petinggi Bengkel</h2>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">Kelola pendaftaran pegawai dan rekapitulasi gaji</p>
+                </div>
+                <button class="btn btn-out" style="flex: none; padding: 8px 16px; font-size:0.8rem;" onclick="logoutAdmin()"><i class="fa-solid fa-power-off"></i> Logout Admin</button>
+            </div>
+
+            <!-- TAMBAH PEGAWAI -->
+            <div class="card">
+                <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fa-solid fa-user-plus"></i> Tambah Pegawai Baru</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+                    <div>
+                        <label>Nama IC</label>
+                        <input type="text" id="newMemberName" placeholder="Contoh: Alex_Stone">
+                    </div>
+                    <div>
+                        <label>Jabatan / Pangkat</label>
+                        <select id="newMemberRank">
+                            <option value="Apprentice Mechanic">Apprentice Mechanic</option>
+                            <option value="Senior Mechanic">Senior Mechanic</option>
+                            <option value="Master Mechanic">Master Mechanic</option>
+                            <option value="HRD">HRD</option>
+                            <option value="Manager">Manager</option>
+                            <option value="CEO">CEO</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>PIN Anggota</label>
+                        <input type="password" id="newMemberPin" placeholder="PIN (e.g. 1234)">
+                    </div>
+                </div>
+                <button class="btn btn-primary" style="margin-top: 15px; width: 100%;" onclick="addMember()"><i class="fa-solid fa-plus"></i> Daftarkan Anggota</button>
+            </div>
+
+            <!-- REKAPITULASI DENGAN FITUR RESET/HAPUS -->
+            <div class="card">
+                <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fa-solid fa-users"></i> Rekap Jam Kerja & Opsi Control</h3>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nama IC</th>
+                                <th>Jabatan</th>
+                                <th>Status</th>
+                                <th>Total Jam Duty</th>
+                                <th>Aksi Admin</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminSummaryTable">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- RIWAYAT LOGS -->
+            <div class="card">
+                <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fa-solid fa-clock-rotate-left"></i> 15 Log Transaksi Terakhir</h3>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Waktu</th>
+                                <th>Nama IC</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminLogsTable">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    // =========================================================================
+    // CONFIGURATION & DATABASE SETTINGS
+    // =========================================================================
+    
+    // Password Admin untuk Petinggi Bengkel (HRD / Manager / CEO)
+    const ADMIN_PASSWORD = "adminbengkel123";
+
+    // KONEKSI DATABASE FIREBASE REALTIME (GRATIS SELAMANYA)
+    const firebaseConfig = {
+        databaseURL: "https://bengkel-duty-default-rtdb.asia-southeast1.firebasedatabase.app/"
+    };
+
+    // Inisialisasi Firebase
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.database();
+
+    let employees = {};
+    let logs = [];
+
+    // Realtime Listener Data Pegawai
+    db.ref('employees').on('value', (snapshot) => {
+        employees = snapshot.val() || {};
+        populateUserDropdown();
+        renderUserSummary();
+        renderAdminDashboard();
+    });
+
+    // Realtime Listener Data Logs
+    db.ref('logs').limitToLast(15).on('value', (snapshot) => {
+        const val = snapshot.val() || {};
+        logs = Object.values(val).reverse();
+        renderAdminLogs();
+    });
+
+    // =========================================================================
+    // UTILITY FUNCTIONS
+    // =========================================================================
+    function formatMsToTime(ms) {
+        let totalSeconds = Math.floor(ms / 1000);
+        let hours = Math.floor(totalSeconds / 3600);
+        let minutes = Math.floor((totalSeconds % 3600) / 60);
+        let seconds = totalSeconds % 60;
+        return `${hours} Jam ${minutes} Mnt ${seconds} Detik`;
+    }
+
+    function showAlert(elementId, message, type) {
+        const el = document.getElementById(elementId);
+        el.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+        setTimeout(() => { el.innerHTML = ''; }, 4000);
+    }
+
+    function switchTab(tab) {
+        document.getElementById('userSection').classList.toggle('hidden', tab !== 'user');
+        document.getElementById('adminSection').classList.toggle('hidden', tab !== 'admin');
+        const btns = document.querySelectorAll('.tab-btn');
+        btns[0].classList.toggle('active', tab === 'user');
+        btns[1].classList.toggle('active', tab === 'admin');
+    }
+
+    // =========================================================================
+    // USER DUTY PROCESS
+    // =========================================================================
+    function populateUserDropdown() {
+        const select = document.getElementById('userSelect');
+        const selectedValue = select.value;
+        select.innerHTML = '<option value="" disabled selected>-- Pilih Karakter IC --</option>';
+        
+        Object.keys(employees).forEach(key => {
+            const emp = employees[key];
+            select.innerHTML += `<option value="${key}">${emp.name} (${emp.rank})</option>`;
+        });
+
+        if (selectedValue && employees[selectedValue]) {
+            select.value = selectedValue;
+        }
+        updateUserStatusView();
+    }
+
+    function updateUserStatusView() {
+        const empId = document.getElementById('userSelect').value;
+        const badge = document.getElementById('currentStatusBadge');
+        if (empId && employees[empId]) {
+            const emp = employees[empId];
+            badge.innerHTML = `<i class="fa-solid fa-circle-dot"></i> ${emp.status}`;
+            badge.className = `status-badge ${emp.status === 'ON DUTY' ? 'badge-on' : 'badge-off'}`;
+        }
+    }
+
+    function processDuty(action) {
+        const empId = document.getElementById('userSelect').value;
+        const pin = document.getElementById('userPin').value.trim();
+
+        if (!empId) return showAlert('userAlert', 'Harap pilih nama anggota terlebih dahulu!', 'error');
+        if (!pin) return showAlert('userAlert', 'Masukkan PIN keamanan kamu!', 'error');
+
+        const emp = employees[empId];
+
+        if (emp.pin !== pin) {
+            return showAlert('userAlert', 'PIN / Password Salah!', 'error');
+        }
+
+        const now = new Date().getTime();
+
+        if (action === 'ON DUTY') {
+            if (emp.status === 'ON DUTY') return showAlert('userAlert', 'Kamu sudah dalam posisi ON DUTY!', 'error');
+            
+            db.ref(`employees/${empId}`).update({
+                status: 'ON DUTY',
+                lastClockIn: now
+            });
+            showAlert('userAlert', `Selamat Bekerja, ${emp.name}! (Clock In Berhasil)`, 'success');
+
+        } else if (action === 'OFF DUTY') {
+            if (emp.status === 'OFF DUTY') return showAlert('userAlert', 'Kamu sedang OFF DUTY!', 'error');
+            
+            let sessionTime = 0;
+            if (emp.lastClockIn) {
+                sessionTime = now - emp.lastClockIn;
+            }
+
+            db.ref(`employees/${empId}`).update({
+                status: 'OFF DUTY',
+                lastClockIn: null,
+                totalTimeMs: (emp.totalTimeMs || 0) + sessionTime
+            });
+            showAlert('userAlert', `Terima kasih atas kerja kerasnya, ${emp.name}! (Clock Out Berhasil)`, 'success');
+        }
+
+        // Catat Log
+        db.ref('logs').push({
+            time: new Date().toLocaleString('id-ID'),
+            name: emp.name,
+            action: action
+        });
+
+        document.getElementById('userPin').value = '';
+    }
+
+    function renderUserSummary() {
+        const tbody = document.getElementById('userSummaryTable');
+        tbody.innerHTML = '';
+
+        if (Object.keys(employees).length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted)">Belum ada anggota terdaftar.</td></tr>';
+            return;
+        }
+
+        Object.keys(employees).forEach(key => {
+            const emp = employees[key];
+            let currentTotal = emp.totalTimeMs || 0;
+            if (emp.status === 'ON DUTY' && emp.lastClockIn) {
+                currentTotal += (new Date().getTime() - emp.lastClockIn);
+            }
+
+            tbody.innerHTML += `
+                <tr>
+                    <td><strong>${emp.name}</strong></td>
+                    <td>${emp.rank}</td>
+                    <td><span class="status-badge ${emp.status === 'ON DUTY' ? 'badge-on' : 'badge-off'}">${emp.status}</span></td>
+                    <td>${formatMsToTime(currentTotal)}</td>
+                </tr>
+            `;
+        });
+    }
+
+    // =========================================================================
+    // MODE ADMIN PROCESS
+    // =========================================================================
+    function loginAdmin() {
+        const inputPass = document.getElementById('adminPasswordInput').value;
+        if (inputPass === ADMIN_PASSWORD) {
+            document.getElementById('adminLoginForm').classList.add('hidden');
+            document.getElementById('adminDashboard').classList.remove('hidden');
+            renderAdminDashboard();
+        } else {
+            showAlert('adminLoginAlert', 'Password Admin Salah! Akses Ditolak.', 'error');
+        }
+    }
+
+    function logoutAdmin() {
+        document.getElementById('adminPasswordInput').value = '';
+        document.getElementById('adminLoginForm').classList.remove('hidden');
+        document.getElementById('adminDashboard').classList.add('hidden');
+    }
+
+    function addMember() {
+        const name = document.getElementById('newMemberName').value.trim();
+        const rank = document.getElementById('newMemberRank').value;
+        const pin = document.getElementById('newMemberPin').value.trim();
+
+        if (!name || !pin) return alert('Lengkapi Nama dan PIN Anggota!');
+
+        const newKey = db.ref('employees').push().key;
+        db.ref(`employees/${newKey}`).set({
+            name: name,
+            rank: rank,
+            pin: pin,
+            status: 'OFF DUTY',
+            totalTimeMs: 0,
+            lastClockIn: null
+        });
+
+        document.getElementById('newMemberName').value = '';
+        document.getElementById('newMemberPin').value = '';
+        alert(`Pegawai ${name} (${rank}) berhasil didaftarkan!`);
+    }
+
+    function resetTime(empId) {
+        if (confirm('Apakah kamu yakin ingin mereset total jam kerja pegawai ini menjadi 0 (Misal saat gajian)?')) {
+            db.ref(`employees/${empId}`).update({
+                totalTimeMs: 0,
+                lastClockIn: employees[empId].status === 'ON DUTY' ? new Date().getTime() : null
+            });
+        }
+    }
+
+    function deleteMember(empId) {
+        if (confirm('Hapus pegawai ini secara permanen dari database bengkel?')) {
+            db.ref(`employees/${empId}`).remove();
+        }
+    }
+
+    function renderAdminDashboard() {
+        const tbody = document.getElementById('adminSummaryTable');
+        tbody.innerHTML = '';
+
+        Object.keys(employees).forEach(key => {
+            const emp = employees[key];
+            let currentTotal = emp.totalTimeMs || 0;
+            if (emp.status === 'ON DUTY' && emp.lastClockIn) {
+                currentTotal += (new Date().getTime() - emp.lastClockIn);
+            }
+
+            tbody.innerHTML += `
+                <tr>
+                    <td><strong>${emp.name}</strong></td>
+                    <td>${emp.rank}</td>
+                    <td><span class="status-badge ${emp.status === 'ON DUTY' ? 'badge-on' : 'badge-off'}">${emp.status}</span></td>
+                    <td>${formatMsToTime(currentTotal)}</td>
+                    <td>
+                        <button class="action-btn-sm btn-reset" onclick="resetTime('${key}')" title="Reset Jam Kerja"><i class="fa-solid fa-rotate-right"></i> Reset</button>
+                        <button class="action-btn-sm btn-del" onclick="deleteMember('${key}')" title="Hapus Pegawai"><i class="fa-solid fa-trash"></i> Hapus</button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    function renderAdminLogs() {
+        const tbody = document.getElementById('adminLogsTable');
+        tbody.innerHTML = '';
+
+        logs.forEach(log => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${log.time}</td>
+                    <td><strong>${log.name}</strong></td>
+                    <td><strong style="color: ${log.action === 'ON DUTY' ? 'var(--success)' : 'var(--danger)'}">${log.action}</strong></td>
+                </tr>
+            `;
+        });
+    }
+</script>
+
+</body>
+</html>
