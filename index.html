@@ -364,15 +364,49 @@
     let logs = [];
     let finances = {};
 
-    // Tarif Gaji Default (Local Storage Supported)
-    let salaryRates = JSON.parse(localStorage.getItem('bengkel_salary_rates')) || {
-        "Apprentice Mechanic": 500,
-        "Senior Mechanic": 800,
-        "Master Mechanic": 1200,
-        "HRD": 1500,
-        "Manager": 1800,
-        "CEO": 2500
-    };
+    // KODE BARU (PAKAI INI):
+let salaryRates = {
+    "Apprentice Mechanic": 500,
+    "Senior Mechanic": 800,
+    "Master Mechanic": 1200,
+    "HRD": 1500,
+    "Manager": 1800,
+    "CEO": 2500
+};
+
+// Listener Realtime Tarif Gaji dari Firebase
+db.ref('salaryRates').on('value', (snapshot) => {
+    const val = snapshot.val();
+    if (val) {
+        salaryRates = val;
+    } else {
+        // Jika di database belum ada, set nilai default awal
+        db.ref('salaryRates').set(salaryRates);
+    }
+    renderSalaryInputs();
+    renderSalarySummary();
+});
+
+// Fungsi Simpan Tarif Gaji Ke Firebase Realtime
+function saveSalaryRates() {
+    Object.keys(salaryRates).forEach(rank => {
+        const inputId = `rate_${rank.replace(/\s+/g, '_')}`;
+        const inputEl = document.getElementById(inputId);
+        if (inputEl) {
+            salaryRates[rank] = parseFloat(inputEl.value) || 0;
+        }
+    });
+
+    // Simpan data langsung ke database Firebase
+    db.ref('salaryRates').set(salaryRates)
+        .then(() => {
+            alert('Tarif gaji berhasil diperbarui dan tersinkronisasi ke seluruh perangkat!');
+        })
+        .catch((error) => {
+            alert('Gagal menyimpan ke database: ' + error.message);
+        });
+    }
+
 
     // Realtime Listener Data Pegawai
     db.ref('employees').on('value', (snapshot) => {
